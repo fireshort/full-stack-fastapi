@@ -1,8 +1,9 @@
 import uuid
+from typing import Annotated
 
 from pydantic import EmailStr
+from sqlalchemy import String
 from sqlmodel import Field, Relationship, SQLModel
-
 
 # Shared properties
 class UserBase(SQLModel):
@@ -41,7 +42,11 @@ class UpdatePassword(SQLModel):
 
 # Database model, database table inferred from class name
 class User(UserBase, table=True):
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    id: uuid.UUID = Field(
+        default_factory=uuid.uuid4,
+        primary_key=True,
+        sa_type=String(36),
+    )
     hashed_password: str
     items: list["Item"] = Relationship(back_populates="owner", cascade_delete=True)
 
@@ -74,10 +79,17 @@ class ItemUpdate(ItemBase):
 
 # Database model, database table inferred from class name
 class Item(ItemBase, table=True):
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    id: uuid.UUID = Field(
+        default_factory=uuid.uuid4,
+        primary_key=True,
+        sa_type=String(36),
+    )
     title: str = Field(max_length=255)
     owner_id: uuid.UUID = Field(
-        foreign_key="user.id", nullable=False, ondelete="CASCADE"
+        sa_type=String(36),
+        foreign_key="user.id",
+        nullable=False,
+        ondelete="CASCADE"
     )
     owner: User | None = Relationship(back_populates="items")
 
